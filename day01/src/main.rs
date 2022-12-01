@@ -1,11 +1,10 @@
 use std::error;
-use std::fs::File;
-use std::io::Read;
+use std::fs::read_to_string;
 
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 fn main() -> Result<()> {
-    let contents = get_contents("input")?;
+    let contents = read_to_string("input")?;
 
     let mut values = contents
         .trim()
@@ -20,14 +19,4 @@ fn main() -> Result<()> {
     dbg!(values[values.len() - 3..].iter().sum::<i64>());
 
     Ok(())
-}
-
-fn get_contents(filename: &str) -> Result<String> {
-    let mut f = File::open(filename)?;
-
-    let mut contents = String::new();
-
-    f.read_to_string(&mut contents)?;
-
-    Ok(contents)
 }
