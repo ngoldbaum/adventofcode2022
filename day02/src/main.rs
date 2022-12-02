@@ -1,5 +1,6 @@
 use std::error;
 use std::fs::read_to_string;
+use std::str::FromStr;
 
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
@@ -10,14 +11,36 @@ fn main() -> Result<()> {
         .trim()
         .split("\n")
         .map(|x| x.split(" ").collect::<Vec<&str>>())
-        .map(|x| (x[0].chars().next().unwrap(), x[1].chars().next().unwrap()))
-        .collect::<Vec<(char, char)>>();
+        .map(|x| (x[0].parse::<Move>().unwrap(), x[1].parse::<Move>().unwrap()))
+        .collect::<Vec<(Move, Move)>>();
 
     let mut total_score: usize = 0;
 
     for round in rounds {
-        let result = get_winner(round);
-        total_score += result.value() + get_score(round.1);
+        let result = get_winner((&round.0, &round.1));
+        total_score += result.value() + round.1.score();
+    }
+
+    dbg!(total_score);
+
+    let rounds = contents
+        .trim()
+        .split("\n")
+        .map(|x| x.split(" ").collect::<Vec<&str>>())
+        .map(|x| {
+            (
+                x[0].parse::<Move>().unwrap(),
+                x[1].parse::<GameResult>().unwrap(),
+            )
+        })
+        .collect::<Vec<(Move, GameResult)>>();
+
+    let mut total_score = 0;
+
+    for round in rounds {
+        let my_move = get_move(&round);
+        let result = get_winner((&round.0, &my_move));
+        total_score += result.value() + my_move.score();
     }
 
     dbg!(total_score);
@@ -25,12 +48,46 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn get_score(c: char) -> usize {
-    match c {
-        'A' | 'X' => 1,
-        'B' | 'Y' => 2,
-        'C' | 'Z' => 3,
-        _ => panic!(),
+fn get_move(round: &(Move, GameResult)) -> Move {
+    match round {
+        (Move::Rock, GameResult::Loss) => Move::Scissors,
+        (Move::Rock, GameResult::Draw) => Move::Rock,
+        (Move::Rock, GameResult::Win) => Move::Paper,
+        (Move::Paper, GameResult::Loss) => Move::Rock,
+        (Move::Paper, GameResult::Draw) => Move::Paper,
+        (Move::Paper, GameResult::Win) => Move::Scissors,
+        (Move::Scissors, GameResult::Loss) => Move::Paper,
+        (Move::Scissors, GameResult::Draw) => Move::Scissors,
+        (Move::Scissors, GameResult::Win) => Move::Rock,
+    }
+}
+
+#[derive(Debug)]
+enum Move {
+    Rock,
+    Paper,
+    Scissors,
+}
+
+impl Move {
+    fn score(&self) -> usize {
+        match *self {
+            Move::Rock => 1,
+            Move::Paper => 2,
+            Move::Scissors => 3,
+        }
+    }
+}
+
+impl FromStr for Move {
+    type Err = Box<dyn std::error::Error>;
+    fn from_str(s: &str) -> Result<Self> {
+        Ok(match s {
+            "A" | "X" => Move::Rock,
+            "B" | "Y" => Move::Paper,
+            "C" | "Z" => Move::Scissors,
+            _ => panic!(),
+        })
     }
 }
 
@@ -51,17 +108,28 @@ impl GameResult {
     }
 }
 
-fn get_winner(round: (char, char)) -> GameResult {
+impl FromStr for GameResult {
+    type Err = Box<dyn std::error::Error>;
+    fn from_str(s: &str) -> Result<Self> {
+        Ok(match s {
+            "X" => GameResult::Loss,
+            "Y" => GameResult::Draw,
+            "Z" => GameResult::Win,
+            _ => panic!(),
+        })
+    }
+}
+
+fn get_winner(round: (&Move, &Move)) -> GameResult {
     match round {
-        ('A', 'X') => GameResult::Draw,
-        ('A', 'Y') => GameResult::Win,
-        ('A', 'Z') => GameResult::Loss,
-        ('B', 'X') => GameResult::Loss,
-        ('B', 'Y') => GameResult::Draw,
-        ('B', 'Z') => GameResult::Win,
-        ('C', 'X') => GameResult::Win,
-        ('C', 'Y') => GameResult::Loss,
-        ('C', 'Z') => GameResult::Draw,
-        _ => panic!(),
+        (Move::Rock, Move::Rock) => GameResult::Draw,
+        (Move::Rock, Move::Paper) => GameResult::Win,
+        (Move::Rock, Move::Scissors) => GameResult::Loss,
+        (Move::Paper, Move::Rock) => GameResult::Loss,
+        (Move::Paper, Move::Paper) => GameResult::Draw,
+        (Move::Paper, Move::Scissors) => GameResult::Win,
+        (Move::Scissors, Move::Rock) => GameResult::Win,
+        (Move::Scissors, Move::Paper) => GameResult::Loss,
+        (Move::Scissors, Move::Scissors) => GameResult::Draw,
     }
 }
