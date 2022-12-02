@@ -8,7 +8,7 @@ fn main() -> Result<()> {
     let contents = read_to_string("input")?;
 
     let scores = contents.lines().map(|x| {
-        let x = x.split_once(" ").unwrap();
+        let x = x.split_once(' ').unwrap();
         let round = (x.0.parse::<Move>().unwrap(), x.1.parse::<Move>().unwrap());
         let result = get_winner(round);
         result.value() + round.1.score()
@@ -17,7 +17,7 @@ fn main() -> Result<()> {
     dbg!(scores.sum::<usize>());
 
     let scores = contents.lines().map(|x| {
-        let x = x.split_once(" ").unwrap();
+        let x = x.split_once(' ').unwrap();
         let round = (
             x.0.parse::<Move>().unwrap(),
             x.1.parse::<GameResult>().unwrap(),
