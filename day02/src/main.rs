@@ -7,48 +7,32 @@ type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 fn main() -> Result<()> {
     let contents = read_to_string("input")?;
 
-    let rounds = contents
-        .trim()
-        .split("\n")
-        .map(|x| x.split(" ").collect::<Vec<&str>>())
-        .map(|x| (x[0].parse::<Move>().unwrap(), x[1].parse::<Move>().unwrap()))
-        .collect::<Vec<(Move, Move)>>();
+    let scores = contents.lines().map(|x| {
+        let x = x.split_once(" ").unwrap();
+        let round = (x.0.parse::<Move>().unwrap(), x.1.parse::<Move>().unwrap());
+        let result = get_winner(round);
+        result.value() + round.1.score()
+    });
 
-    let mut total_score: usize = 0;
+    dbg!(scores.sum::<usize>());
 
-    for round in rounds {
-        let result = get_winner((&round.0, &round.1));
-        total_score += result.value() + round.1.score();
-    }
+    let scores = contents.lines().map(|x| {
+        let x = x.split_once(" ").unwrap();
+        let round = (
+            x.0.parse::<Move>().unwrap(),
+            x.1.parse::<GameResult>().unwrap(),
+        );
+        let my_move = get_move(round);
+        let result = get_winner((round.0, my_move));
+        result.value() + my_move.score()
+    });
 
-    dbg!(total_score);
-
-    let rounds = contents
-        .trim()
-        .split("\n")
-        .map(|x| x.split(" ").collect::<Vec<&str>>())
-        .map(|x| {
-            (
-                x[0].parse::<Move>().unwrap(),
-                x[1].parse::<GameResult>().unwrap(),
-            )
-        })
-        .collect::<Vec<(Move, GameResult)>>();
-
-    let mut total_score = 0;
-
-    for round in rounds {
-        let my_move = get_move(&round);
-        let result = get_winner((&round.0, &my_move));
-        total_score += result.value() + my_move.score();
-    }
-
-    dbg!(total_score);
+    dbg!(scores.sum::<usize>());
 
     Ok(())
 }
 
-fn get_move(round: &(Move, GameResult)) -> Move {
+fn get_move(round: (Move, GameResult)) -> Move {
     match round {
         (Move::Rock, GameResult::Loss) => Move::Scissors,
         (Move::Rock, GameResult::Draw) => Move::Rock,
@@ -62,7 +46,7 @@ fn get_move(round: &(Move, GameResult)) -> Move {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum Move {
     Rock,
     Paper,
@@ -91,7 +75,7 @@ impl FromStr for Move {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum GameResult {
     Win,
     Loss,
@@ -120,7 +104,7 @@ impl FromStr for GameResult {
     }
 }
 
-fn get_winner(round: (&Move, &Move)) -> GameResult {
+fn get_winner(round: (Move, Move)) -> GameResult {
     match round {
         (Move::Rock, Move::Rock) => GameResult::Draw,
         (Move::Rock, Move::Paper) => GameResult::Win,
