@@ -16,8 +16,8 @@ fn main() -> Result<()> {
             let c = (&x[0..num_items / 2], &x[num_items / 2..]);
             let c: (HashSet<char>, HashSet<char>) = (c.0.chars().collect(), c.1.chars().collect());
             let int =
-                c.0.into_iter()
-                    .filter(|x| c.1.contains(x))
+                c.0.intersection(&c.1)
+                    .map(|c| *c)
                     .collect::<HashSet<char>>();
             let int = int.into_iter().next().unwrap();
             ASCII.chars().position(|x| x == int).unwrap() + 1
@@ -38,12 +38,12 @@ fn main() -> Result<()> {
                 x[2].chars().collect(),
             );
             let int =
-                s.0.into_iter()
-                    .filter(|x| s.1.contains(x))
+                s.0.intersection(&s.1)
+                    .map(|c| *c)
                     .collect::<HashSet<char>>();
             let int = int
-                .into_iter()
-                .filter(|x| s.2.contains(x))
+                .intersection(&s.2)
+                .map(|c| *c)
                 .collect::<HashSet<char>>()
                 .into_iter()
                 .next()
