@@ -15,8 +15,8 @@ fn main() -> Result<()> {
             let num_items = x.len();
             let c = (&x[0..num_items / 2], &x[num_items / 2..]);
             let c: (HashSet<char>, HashSet<char>) = (c.0.chars().collect(), c.1.chars().collect());
-            let int = c.0.intersection(&c.1).copied();
-            let int = int.last().unwrap();
+            let int = &c.0 & &c.1;
+            let int = int.into_iter().last().unwrap();
             ASCII.chars().position(|x| x == int).unwrap() + 1
         })
         .sum::<usize>();
@@ -34,8 +34,8 @@ fn main() -> Result<()> {
                 x[1].chars().collect(),
                 x[2].chars().collect(),
             );
-            let int = s.0.intersection(&s.1).copied().collect::<HashSet<char>>();
-            let int = int.intersection(&s.2).copied().last().unwrap();
+            let int = &s.0 & &s.1;
+            let int = (&int & &s.2).into_iter().last().unwrap();
             ASCII.chars().position(|x| x == int).unwrap() + 1
         })
         .sum::<usize>();
