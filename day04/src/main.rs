@@ -17,21 +17,12 @@ fn main() -> Result<()> {
 
     let contains: usize = ranges
         .iter()
-        .map(|a| {
-            if contains(a.0, a.1) || contains(a.1, a.0) {
-                1
-            } else {
-                0
-            }
-        })
+        .map(|a| (contains(a.0, a.1) || contains(a.1, a.0)) as usize)
         .sum();
 
     dbg!(contains);
 
-    let overlaps: usize = ranges
-        .iter()
-        .map(|a| if overlaps(a.0, a.1) { 1 } else { 0 })
-        .sum();
+    let overlaps: usize = ranges.iter().map(|a| overlaps(a.0, a.1) as usize).sum();
 
     dbg!(overlaps);
 
@@ -45,17 +36,9 @@ fn get_range(range: &str) -> (usize, usize) {
 }
 
 fn contains(r1: (usize, usize), r2: (usize, usize)) -> bool {
-    if r2.0 >= r1.0 && r2.1 <= r1.1 {
-        true
-    } else {
-        false
-    }
+    r2.0 >= r1.0 && r2.1 <= r1.1
 }
 
 fn overlaps(r1: (usize, usize), r2: (usize, usize)) -> bool {
-    if r1.0 <= r2.1 && r2.0 <= r1.1 {
-        true
-    } else {
-        false
-    }
+    r1.0 <= r2.1 && r2.0 <= r1.1
 }
