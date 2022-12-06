@@ -47,54 +47,34 @@ fn main() -> Result<()> {
         }
     }
 
-    let re = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
-
-    let mut stack = orig_stack.clone();
-
-    for line in instructions.lines() {
-        let caps = re.captures(line).unwrap();
-        let num_to_move: usize = caps.get(1).unwrap().as_str().parse().unwrap();
-        let origin: usize = caps.get(2).unwrap().as_str().parse().unwrap();
-        let origin = origin - 1;
-        let destination: usize = caps.get(3).unwrap().as_str().parse().unwrap();
-        let destination = destination - 1;
-        let orig_crates = &mut stack[origin];
-        let move_crates = orig_crates.drain(..num_to_move).collect::<Vec<char>>();
-        for c in move_crates {
-            stack[destination].insert(0, c);
-        }
-    }
-
-    let answer = &stack
-        .iter()
-        .map(|x| x.iter().next().unwrap())
-        .collect::<String>();
-
-    dbg!(answer);
-
-    let mut stack = orig_stack.clone();
-
-    for line in instructions.lines() {
-        let caps = re.captures(line).unwrap();
-        let num_to_move: usize = caps.get(1).unwrap().as_str().parse().unwrap();
-        let origin: usize = caps.get(2).unwrap().as_str().parse().unwrap();
-        let origin = origin - 1;
-        let destination: usize = caps.get(3).unwrap().as_str().parse().unwrap();
-        let destination = destination - 1;
-        let orig_crates = &mut stack[origin];
-        let mut move_crates = orig_crates.drain(..num_to_move).collect::<Vec<char>>();
-        move_crates.reverse();
-        for c in move_crates {
-            stack[destination].insert(0, c);
-        }
-    }
-
-    let answer = &stack
-        .iter()
-        .map(|x| x.iter().next().unwrap())
-        .collect::<String>();
-
-    dbg!(answer);
+    dbg!(solve(&mut orig_stack.clone(), instructions, false)?);
+    dbg!(solve(&mut orig_stack.clone(), instructions, true)?);
 
     Ok(())
+}
+
+fn solve(stack: &mut Vec<Vec<char>>, instructions: &str, reverse: bool) -> Result<String> {
+    let re = Regex::new(r"move (\d+) from (\d+) to (\d+)")?;
+
+    for line in instructions.lines() {
+        let caps = re.captures(line).unwrap();
+        let num_to_move: usize = caps.get(1).unwrap().as_str().parse()?;
+        let origin: usize = caps.get(2).unwrap().as_str().parse()?;
+        let destination: usize = caps.get(3).unwrap().as_str().parse()?;
+        let orig_crates = &mut stack[origin - 1];
+        let mut move_crates = orig_crates.drain(..num_to_move).collect::<Vec<char>>();
+        if reverse {
+            move_crates.reverse();
+        }
+        for c in move_crates {
+            stack[destination - 1].insert(0, c);
+        }
+    }
+
+    let answer = stack
+        .iter()
+        .map(|x| x.iter().next().unwrap())
+        .collect::<String>();
+
+    Ok(answer)
 }
