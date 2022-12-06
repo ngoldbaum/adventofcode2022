@@ -36,24 +36,22 @@ fn main() -> Result<()> {
         })
         .collect::<Vec<Vec<String>>>();
 
-    let mut stack: Vec<Vec<char>> = vec![Vec::new(); num_stacks];
+    let mut orig_stack: Vec<Vec<char>> = vec![Vec::new(); num_stacks];
 
     for crate_row in crates {
         for (i, c) in crate_row.iter().enumerate() {
             if c == "   " {
                 continue;
             }
-            stack[i].push(c.chars().nth(1).unwrap())
+            orig_stack[i].push(c.chars().nth(1).unwrap())
         }
     }
 
-    dbg!(&stack);
-
     let re = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
 
+    let mut stack = orig_stack.clone();
+
     for line in instructions.lines() {
-        dbg!(&stack);
-        dbg!(line);
         let caps = re.captures(line).unwrap();
         let num_to_move: usize = caps.get(1).unwrap().as_str().parse().unwrap();
         let origin: usize = caps.get(2).unwrap().as_str().parse().unwrap();
@@ -62,6 +60,30 @@ fn main() -> Result<()> {
         let destination = destination - 1;
         let orig_crates = &mut stack[origin];
         let move_crates = orig_crates.drain(..num_to_move).collect::<Vec<char>>();
+        for c in move_crates {
+            stack[destination].insert(0, c);
+        }
+    }
+
+    let answer = &stack
+        .iter()
+        .map(|x| x.iter().next().unwrap())
+        .collect::<String>();
+
+    dbg!(answer);
+
+    let mut stack = orig_stack.clone();
+
+    for line in instructions.lines() {
+        let caps = re.captures(line).unwrap();
+        let num_to_move: usize = caps.get(1).unwrap().as_str().parse().unwrap();
+        let origin: usize = caps.get(2).unwrap().as_str().parse().unwrap();
+        let origin = origin - 1;
+        let destination: usize = caps.get(3).unwrap().as_str().parse().unwrap();
+        let destination = destination - 1;
+        let orig_crates = &mut stack[origin];
+        let mut move_crates = orig_crates.drain(..num_to_move).collect::<Vec<char>>();
+        move_crates.reverse();
         for c in move_crates {
             stack[destination].insert(0, c);
         }
